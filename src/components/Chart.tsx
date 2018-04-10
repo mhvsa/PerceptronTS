@@ -1,49 +1,76 @@
 import * as React from "react";
-import { Component, ReactNode } from "react";
-import { Line, Bar, Scatter } from "react-chartjs-2"
-import { Point } from "chart.js";
+import {Component, ReactNode} from "react";
+import {Line, Bar, Scatter} from "react-chartjs-2"
+import {Point} from "chart.js";
+import {Neuron} from "../lib/neuron";
 
-// interface ChartState = 
-export interface ChartProps { data: Point[][], colors: any[] };
-export interface ChartState { chartData: any, options: any };
+export interface ChartProps {
+    dataset: any[],
+    neuron: Neuron
+};
+
+export interface ChartState {
+    chartData: any,
+    options: any,
+    line: Point[];
+};
 
 export class Chart extends Component<ChartProps, ChartState> {
 
     constructor(props: ChartProps) {
         super(props);
-        this.state = {
-            chartData: {
-                datasets: [{
-                    label: "Yellow",
-                    backgroundColor: "Yellow",
-                    pointRadius: 3,
-                    data: props.data[0],
-                    fill: false
-                },{
-                    label: "Black",
-                    backgroundColor: "Black",
-                    pointRadius: 3,
-                    data: props.data[1],
-                    fill: false
+        let values = this.setLine(props);
+        let chartData = {
+            datasets: [{
+                label: "Neuron",
+                backgroundColor: "Red",
+                pointRadius: 0,
+                data: values,
+                fill: false,
+                showLine: true,
+                showPoints: false,
+                borderColor: "Red"
+            }].concat(this.props.dataset)
+        };
+        let options = {
+            scales: {
+                xAxes: [{
+                    type: 'linear',
+                    position: 'bottom'
                 }]
-            },
-            options: {
-                scales: {
-                    xAxes: [{
-                        type: 'linear',
-                        position: 'bottom'
-                    }]
-                },
-                showLines: false,
             }
+        };
+        this.state = {
+            chartData: chartData,
+            options: options,
+            line: values
         }
 
+    }
+
+    private setLine(props: ChartProps) {
+        let values: Point[] = [];
+        let a = props.neuron.weights[0];
+        let b = props.neuron.weights[1];
+        let c = props.neuron.bias;
+
+        let f = function (x: number) {
+            return (a * x) / (-1 * (b)) + c / (-1 * (b));
+        };
+
+        for (let i = -1000; i < 1000; i++) {
+            let y = f(i / 100);
+            if (y <= 10 && y > -10) {
+                values.push({x: i / 100, y: y});
+            }
+        }
+        return values;
     }
 
     render(): ReactNode {
         return (
             <div className="chart">
-                <Scatter
+                <Line
                     data={this.state.chartData}
                     options={this.state.options}
                 />

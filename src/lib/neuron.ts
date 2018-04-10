@@ -1,3 +1,5 @@
+import {BigNumber} from "bignumber.js"
+
 interface IActivationFunction {
     (n: number): number;
 }
